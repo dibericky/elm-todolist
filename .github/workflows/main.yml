@@ -22,7 +22,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    # Setup Elm Environment
+    # Setup Elm Environment 
     - uses: justgook/setup-elm@v1
     # Elm make
     - name: Setup Elm   
