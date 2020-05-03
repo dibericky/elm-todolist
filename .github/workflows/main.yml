@@ -26,12 +26,12 @@ jobs:
     - uses: justgook/setup-elm@v1
     # Elm make
     - name: Setup Elm   
-      run: elm make src/TodoList.elm  --output elm.js 
+      run: elm make src/TodoList.elm  --output public/elm.js 
     - name: Deploy
       if: success()
       uses: crazy-max/ghaction-github-pages@v1
       with:
         target_branch: master
-        build_dir: /
+        build_dir: /public
       env:
         GITHUB_PAT: ${{ secrets.Deploy }}
