@@ -27,9 +27,11 @@ jobs:
     # Elm make
     - name: Setup Elm   
       run: elm make src/TodoList.elm  --output elm.js 
-    - name: GitHub Pages
-      uses: crazy-max/ghaction-github-pages@v1.4.1
+    - name: Deploy
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v1
       with:
-        build_dir: '/'
+        target_branch: master
+        build_dir: /
       env:
-          GITHUB_PAT: ${{ secrets.Deploy }}
+        GITHUB_PAT: ${{ secrets.Deploy }}
