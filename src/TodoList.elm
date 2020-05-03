@@ -127,10 +127,12 @@ update msg model =
             }
 
 
+onDoneClick : String -> Attribute Msg
 onDoneClick name =
     onClick (SetAsDone name)
 
 
+onToDoClick : String -> Attribute Msg
 onToDoClick name =
     onClick (SetAsTodo name)
 
@@ -200,13 +202,20 @@ viewAddItem itemToAdd error =
 view : Model -> Html Msg
 view model =
     div []
-        [ viewAddItem model.itemToAdd model.error
+        [ title [] [ text "Elm ToDo List" ]
+        , viewAddItem model.itemToAdd model.error
         , viewItemList model.items
         ]
 
 
 
 -- Styled Components
+
+
+title : List (Attribute msg) -> List (Html msg) -> Html msg
+title =
+    styled Html.Styled.h2
+        [ textAlign center ]
 
 
 styledInput : List (Attribute msg) -> List (Html msg) -> Html msg
