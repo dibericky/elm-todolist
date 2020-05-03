@@ -25,6 +25,7 @@ type alias TodoItem =
 type alias Model =
     { items : List TodoItem
     , itemToAdd : TodoItem
+    , error : Maybe AddItemError
     }
 
 
@@ -32,6 +33,7 @@ initialModel : Model
 initialModel =
     { items = [ TodoItem "item1" False, TodoItem "item2" True ]
     , itemToAdd = TodoItem "" False
+    , error = Nothing
     }
 
 
@@ -63,14 +65,55 @@ updateItem msg item =
             item
 
 
+type AddItemError
+    = EmptyName
+    | AlreadyExists
+
+
+addNewItem : Model -> Result AddItemError Model
+addNewItem model =
+    let
+        newItemName =
+            model.itemToAdd.name
+
+        isNewItemAlreadyExist =
+            List.filter (\item -> item.name == newItemName) model.items
+                |> List.isEmpty
+                |> not
+
+        isNewItemNameEmpty =
+            String.isEmpty newItemName
+    in
+    case ( isNewItemAlreadyExist, isNewItemNameEmpty ) of
+        ( False, False ) ->
+            Ok
+                { model
+                    | items = model.itemToAdd :: model.items
+                    , itemToAdd = TodoItem "" False
+                    , error = Nothing
+                }
+
+        ( _, True ) ->
+            Err EmptyName
+
+        ( True, _ ) ->
+            Err AlreadyExists
+
+
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         AddItem ->
-            { model
-                | items = model.itemToAdd :: model.items
-                , itemToAdd = TodoItem "" False
-            }
+            let
+                itemAddingResponse =
+                    addNewItem model
+            in
+            case itemAddingResponse of
+                Ok newModel ->
+                    newModel
+
+                Err errorType ->
+                    { model | error = Just errorType }
 
         OnAddInputChange name ->
             { model
@@ -90,6 +133,10 @@ onDoneClick name =
 
 onToDoClick name =
     onClick (SetAsTodo name)
+
+
+
+-- View
 
 
 viewItem : TodoItem -> Html Msg
@@ -113,23 +160,53 @@ viewItemList items =
         (List.map viewItem items)
 
 
-viewAddItem : TodoItem -> Html Msg
-viewAddItem itemToAdd =
-    addItemDiv []
-        [ styledInput [ type_ "text", onInput OnAddInputChange, value itemToAdd.name ]
+viewError : Maybe AddItemError -> List (Html Msg)
+viewError error =
+    case error of
+        Nothing ->
             []
-        , submitButton
-            [ onClick AddItem ]
-            [ text "Add item" ]
-        ]
+
+        Just AlreadyExists ->
+            [ spanError []
+                [ text "Item with this name already exists" ]
+            ]
+
+        Just EmptyName ->
+            [ spanError []
+                [ text "Name cannot be empty" ]
+            ]
+
+
+viewAddItem : TodoItem -> Maybe AddItemError -> Html Msg
+viewAddItem itemToAdd error =
+    let
+        errorComponent =
+            viewError error
+    in
+    addItemWrapperDiv []
+        (addItemDiv
+            []
+            [ styledInput
+                [ type_ "text", onInput OnAddInputChange, value itemToAdd.name ]
+                []
+            , submitButton
+                [ onClick AddItem ]
+                [ text "Add item" ]
+            ]
+            :: errorComponent
+        )
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ viewAddItem model.itemToAdd
+        [ viewAddItem model.itemToAdd model.error
         , viewItemList model.items
         ]
+
+
+
+-- Styled Components
 
 
 styledInput : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -174,12 +251,20 @@ addItemDiv =
         [ Css.property "display" "grid"
         , Css.property "grid-template-columns" "1fr min-content"
         , Css.property "grid-gap" "10px"
-        , borderRadius (px 10)
-        , border3 (px 1) solid (hex "#cbcfd2")
         , alignItems center
         , justifyContent spaceBetween
+        ]
+
+
+addItemWrapperDiv : List (Attribute msg) -> List (Html msg) -> Html msg
+addItemWrapperDiv =
+    styled Html.Styled.div
+        [ borderRadius (px 10)
+        , border3 (px 1) solid (hex "#cbcfd2")
         , padding (px 5)
         , backgroundColor (hex "#d0edff")
+        , displayFlex
+        , flexDirection column
         ]
 
 
@@ -203,4 +288,12 @@ listDiv =
         [ Css.property "display" "grid"
         , Css.property "grid-gap" "10px"
         , padding (px 5)
+        ]
+
+
+spanError : List (Attribute msg) -> List (Html msg) -> Html msg
+spanError =
+    styled Html.Styled.span
+        [ color (hex "#ff4444")
+        , fontWeight bold
         ]
