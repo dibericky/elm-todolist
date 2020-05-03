@@ -27,3 +27,7 @@ jobs:
     # Elm make
     - name: Setup Elm   
       run: elm make src/TodoList.elm  --output elm.js 
+    - name: GitHub Pages
+      uses: crazy-max/ghaction-github-pages@v1.4.1
+      with:
+        build_dir: '/
