@@ -1,0 +1,12 @@
+version: 2
+updates:
+- package-ecosystem: elm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: rtfeldman/elm-css
+    versions:
+    - 16.1.0
